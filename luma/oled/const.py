@@ -28,7 +28,27 @@ class ssd1306(common):
 
 sh1106 = sh1107 = ssd1306
 
-
+class ssh1122_const(const.common): # copying datashit: https://www.displayfuture.com/Display/datasheet/controller/SH1122.pdf
+	SET_COL_ADR_LSB = 0X0 ok
+	SET_COL_ADR_MSB = 0X10 ok
+	SET_DISP_START_LINE = 0X40 ok
+ 	SET_CONTRAST = 0X81 ok
+	SET_SEG_REMAP = 0XA0 ok
+	SET_ENTIRE_ON = 0XA4 ok
+	SET_ENTIRE_OFF= 0XA5 ok
+	SET_NORM_INV = 0XA6
+	SET_MUX_RATIO = 0XA8
+	SET_CTRL_DCDC = 0XAD
+	SET_DISP = 0XAE
+	SET_ROW_ADR = 0XB0
+	SET_COM_OUT_DIR = 0XC0
+	SET_DISP_OFFSET = 0XD3 ok
+	SET_DISP_CLK_DIV = 0XD5 ok
+	SET_PRECHARGE = 0xD9 ok
+	SET_VCOM_DESEL = 0xDB ok
+	SET_VSEG_LEVEL = 0XDC
+	SET_DISCHARGE_LEVEL = 0X30
+    
 class ssd1322(common):
     DISPLAYON = 0xAF
     DISPLAYOFF = 0xAE
