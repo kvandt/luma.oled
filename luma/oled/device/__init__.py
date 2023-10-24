@@ -589,6 +589,80 @@ class ssd1322(greyscale_device):
         if len(args) > 0:
             self._serial_interface.data(list(args))
 
+class sh1122(greyscale_device):
+	def __init__(self, serial_interface=None, **kwargs):
+		super().__init__(ssh1122_const, serial_interface, 256, 64, 0, "RGB", full_frame(), nibble_order = 0, **kwargs)
+
+	def command(self, *args):
+		return super().command(*args)
+	
+	def _supported_dimensions(self):
+		return [ (256, 64) ] # I don't know about anything other...
+
+	def _init_sequence(self):
+		for cmd in (
+			self._const.SET_DISP | 0x00,  # off
+			# address setting
+			self._const.SET_COL_ADR_LSB,
+			self._const.SET_COL_ADR_MSB,  # horizontal
+			self._const.SET_ROW_ADR, 0,
+			# resolution and layout
+			self._const.SET_DISP_START_LINE | 0x00,
+			self._const.SET_SEG_REMAP,
+			self._const.SET_MUX_RATIO,
+			self.height - 1,
+			self._const.SET_COM_OUT_DIR,  # scan from COM0 to COM[N]
+			self._const.SET_DISP_OFFSET,
+			0x00,
+			0b11010101,
+			0b11110000,
+			# display
+			self._const.SET_CONTRAST,
+			0x80,  # median
+			self._const.SET_ENTIRE_ON,  # output follows RAM contents
+			self._const.SET_NORM_INV,  # not inverted
+			self._const.SET_DISP | 0x01,
+		):  
+			self.command(cmd)
+
+		pass
+
+	def _set_position(self, top, right, bottom, left):
+		pass
+
+	def display(self, image):
+		"""
+		Takes a 1-bit monochrome or 24-bit RGB image and renders it
+		to the greyscale OLED display. RGB pixels are converted to 8-bit
+		greyscale values using a simplified Luma calculation, based on
+		*Y'=0.299R'+0.587G'+0.114B'*.
+		:param image: the image to render
+		:type image: PIL.Image.Image
+		"""
+
+		assert image.mode == self.mode
+		assert image.size == self.size
+
+		image = self.preprocess(image)
+
+		for image, bounding_box in self.framebuffer.redraw(image):
+			left, top, right, bottom = bounding_box
+			width = right - left
+			height = bottom - top
+
+			buf = bytearray(width * height >> 1)
+
+			#self.command(self._const.SETCOLLO)
+			#self.command(self._const.SETCOLHI)
+			#self.command(self._const.SETROW, 20)
+			self._populate(buf, image.getdata())
+			self.data(buf)
+
+
+	def cleanup(self):
+		print("sh1122::cleanup()")
+		self.command(self._const.SET_ENTIRE_OFF) # to be abso-fucking-lutely sure
+		super().cleanup() # .. and this should call DISPLAYOFF command
 
 class ssd1362(greyscale_device):
     """
